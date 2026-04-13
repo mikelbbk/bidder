@@ -364,6 +364,20 @@ function shorthand(n) {
   return String(n);
 }
 
+function shorthandCall(n) {
+  if (n >= 1000000) {
+    let v = n / 1000000;
+    let num = Number.isInteger(v) ? v.toFixed(0) : v.toFixed(3).replace(/\.?0+$/, '');
+    return num + '<span style="font-size:16px;font-weight:600;opacity:0.7;">M</span>';
+  }
+  if (n >= 1000) {
+    let v = n / 1000;
+    let num = Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1).replace(/\.?0+$/, '');
+    return num + '<span style="font-size:16px;font-weight:600;opacity:0.7;">k</span>';
+  }
+  return String(n);
+}
+
 function getIncrement(bid, range, pct) {
   // Four fixed zones regardless of price:
   // Early (0-40%):  20k steps
@@ -423,7 +437,7 @@ function generate() {
     let stepStr = b.inc ? '+' + shorthand(b.inc) : '—';
 
     rows += `<tr class="z-${z}">
-      <td><span class="tc-call">${shorthand(b.bid)}${pill}</span></td>
+      <td><span class="tc-call">${shorthandCall(b.bid)}${pill}</span></td>
       <td><span class="tc-full">${fmtFull(b.bid)}</span></td>
       <td><span class="tc-above">${aboveStr}</span></td>
       <td><span class="tc-step">${stepStr}</span></td>
