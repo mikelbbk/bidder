@@ -304,6 +304,9 @@
     font-weight: 800;
   }
 
+  tbody tr { cursor: pointer; }
+  tbody tr.selected td { background: rgba(92,74,42,0.18) !important; box-shadow: inset 4px 0 0 var(--accent); }
+
   .tip {
     font-size: 12px;
     color: var(--muted);
@@ -447,7 +450,15 @@ function generate() {
         <tbody>${rows}</tbody>
       </table>
     </div>
-    <p class="tip">Increments taper as you near your max &nbsp;·&nbsp; Amber = close &nbsp;·&nbsp; Red = walk away</p>`;
+    <p class="tip">Tap a row to mark your current bid &nbsp;·&nbsp; Increments taper as you near your max &nbsp;·&nbsp; Amber = close &nbsp;·&nbsp; Red = walk away</p>`;
+
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.addEventListener('click', () => {
+      const wasSelected = row.classList.contains('selected');
+      document.querySelectorAll('tbody tr.selected').forEach(r => r.classList.remove('selected'));
+      if (!wasSelected) row.classList.add('selected');
+    });
+  });
 }
 </script>
 </body>
