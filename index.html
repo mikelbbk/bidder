@@ -447,10 +447,10 @@ function generate() {
             <th class="th-step">Step</th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows}<tr style="background:#6e1508;"><td colspan="4" style="padding:14px 12px;text-align:center;font-size:22px;font-weight:800;color:#fff;letter-spacing:0.08em;border-left:5px solid #3d0a04;">🚫 WALK AWAY</td></tr></tbody>
       </table>
     </div>
-    <p class="tip">Tap a row to mark your current bid &nbsp;·&nbsp; Increments taper as you near your max &nbsp;·&nbsp; Amber = close &nbsp;·&nbsp; Red = walk away</p>`;
+ &nbsp;·&nbsp; Increments taper as you near your max &nbsp;·&nbsp; Amber = close &nbsp;·&nbsp; Red = walk away</p>`;
 
   document.querySelectorAll('tbody tr').forEach(row => {
     row.addEventListener('click', () => {
