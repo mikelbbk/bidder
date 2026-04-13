@@ -1,1 +1,454 @@
-save
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Auction Bid Caller</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f2ede4;
+    --bg2:       #e5ddd0;
+    --surface:   #faf7f2;
+    --border:    #ccc4b0;
+    --border2:   #b5a98e;
+    --ink:       #2a2318;
+    --muted:     #7d6f5c;
+    --accent:    #5c4a2a;
+
+    --z-open-bg:    #faf7f2;
+    --z-open-bar:   #b5a98e;
+    --z-open-call:  #2a2318;
+    --z-open-sub:   #5c5040;
+
+    --z-mid-bg:     #edf4e8;
+    --z-mid-bar:    #4a7c3f;
+    --z-mid-call:   #1c3818;
+    --z-mid-sub:    #3a6030;
+
+    --z-tight-bg:   #fdf4e0;
+    --z-tight-bar:  #b07820;
+    --z-tight-call: #5a3c00;
+    --z-tight-sub:  #8a5e10;
+
+    --z-warn-bg:    #fce9e3;
+    --z-warn-bar:   #b03020;
+    --z-warn-call:  #6e1508;
+    --z-warn-sub:   #992211;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--accent);
+    padding: 1rem 1.25rem 0.9rem;
+    border-bottom: 3px solid #3d2e12;
+  }
+
+  header h1 {
+    font-family: 'Lora', serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #f5edd8;
+  }
+
+  header p {
+    font-size: 12px;
+    color: #c4aa80;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 500;
+    margin-top: 1px;
+    letter-spacing: 0.04em;
+  }
+
+  /* INPUTS */
+  .inputs {
+    padding: 1rem 1.25rem 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+
+  .field label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .field input {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    width: 100%;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: #c5bba8; font-weight: 400; }
+
+  /* BUTTON */
+  .btn-wrap { padding: 10px 1.25rem 1rem; }
+
+  button {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #f5edd8;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:active { background: #3d2e12; transform: scale(0.99); }
+
+  /* SUMMARY */
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 1.25rem 0.85rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .stat-val {
+    font-size: 20px;
+    font-weight: 800;
+    margin-top: 2px;
+    color: var(--ink);
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 12px;
+    padding: 0 1.25rem 0.7rem;
+    flex-wrap: wrap;
+  }
+
+  .leg {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* TABLE */
+  .tbl-outer { padding: 0 1.25rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  /* Fixed column widths — thead and tbody share these */
+  col.c-call  { width: 28%; }
+  col.c-full  { width: 28%; }
+  col.c-above { width: 27%; }
+  col.c-step  { width: 17%; }
+
+  /* STICKY THEAD */
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  thead th {
+    background: var(--bg2);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--border2);
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  thead th.th-step { text-align: right; }
+
+  /* BODY */
+  tbody tr { border-bottom: 1px solid var(--border); }
+
+  /* All tds share the same padding/alignment as their th */
+  tbody td {
+    padding: 11px 12px;
+    vertical-align: middle;
+    overflow: hidden;
+  }
+
+  /* Left bar via border-left on the first td */
+  tbody tr td:first-child {
+    border-left: 5px solid transparent;
+    padding-left: 9px;
+  }
+
+  /* Col 1 — CALL */
+  .tc-call {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Col 2 — FULL PRICE */
+  .tc-full {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Col 3 — ABOVE OPENING */
+  .tc-above {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* Col 4 — STEP */
+  .tc-step {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* ZONE COLOURS */
+  .z-open  { background: var(--z-open-bg); }
+  .z-open  td:first-child { border-left-color: var(--z-open-bar); }
+  .z-open  .tc-call  { color: var(--z-open-call); }
+  .z-open  .tc-full  { color: #706050; }
+  .z-open  .tc-above { color: #5c5040; }
+  .z-open  .tc-step  { color: #a09080; }
+
+  .z-mid   { background: var(--z-mid-bg); }
+  .z-mid   td:first-child { border-left-color: var(--z-mid-bar); }
+  .z-mid   .tc-call  { color: var(--z-mid-call); }
+  .z-mid   .tc-full  { color: #3a6030; }
+  .z-mid   .tc-above { color: var(--z-mid-sub); }
+  .z-mid   .tc-step  { color: #5a8050; }
+
+  .z-tight { background: var(--z-tight-bg); }
+  .z-tight td:first-child { border-left-color: var(--z-tight-bar); }
+  .z-tight .tc-call  { color: var(--z-tight-call); }
+  .z-tight .tc-full  { color: #7a5e20; }
+  .z-tight .tc-above { color: var(--z-tight-sub); }
+  .z-tight .tc-step  { color: #9a7a30; }
+
+  .z-warn  { background: var(--z-warn-bg); }
+  .z-warn  td:first-child { border-left-color: var(--z-warn-bar); }
+  .z-warn  .tc-call  { color: var(--z-warn-call); }
+  .z-warn  .tc-full  { color: #882010; }
+  .z-warn  .tc-above { color: var(--z-warn-sub); }
+  .z-warn  .tc-step  { color: #aa3020; }
+
+  .pill {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: #6e1508;
+    color: #fce8e2;
+    margin-left: 5px;
+    vertical-align: middle;
+    font-weight: 800;
+  }
+
+  .tip {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0.75rem 1.25rem 2rem;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  .error {
+    color: #b03020;
+    font-size: 14px;
+    padding: 0 1.25rem;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Auction Bid Caller</h1>
+  <p>Bid sequence generator</p>
+</header>
+
+<div class="inputs">
+  <div class="field">
+    <label>Opening bid</label>
+    <input type="number" id="open" placeholder="800000" step="5000" inputmode="numeric" />
+  </div>
+  <div class="field">
+    <label>Max budget</label>
+    <input type="number" id="max" placeholder="950000" step="5000" inputmode="numeric" />
+  </div>
+</div>
+
+<div class="btn-wrap">
+  <button onclick="generate()">Generate bid table &rarr;</button>
+</div>
+
+<div id="out"></div>
+
+<script>
+function fmtFull(n) {
+  return '$' + n.toLocaleString('en-AU');
+}
+
+function shorthand(n) {
+  if (n >= 1000000) {
+    let v = n / 1000000;
+    return (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(3).replace(/\.?0+$/, '')) + 'M';
+  }
+  if (n >= 1000) {
+    let v = n / 1000;
+    return (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1).replace(/\.?0+$/, '')) + 'k';
+  }
+  return String(n);
+}
+
+function getIncrement(bid, range, pct) {
+  // Four fixed zones regardless of price:
+  // Early (0-40%):  20k steps
+  // Mid   (40-70%): 10k steps
+  // Close (70-90%): 5k steps
+  // Late  (90-100%): 2k then 1k steps
+  if (pct < 0.40) return 20000;
+  if (pct < 0.70) return 10000;
+  if (pct < 0.90) return 5000;
+  if (pct < 0.95) return 2000;
+  return 1000;
+}
+
+function generate() {
+  const open = parseInt(document.getElementById('open').value);
+  const max  = parseInt(document.getElementById('max').value);
+  const out  = document.getElementById('out');
+
+  if (!open || !max || open >= max) {
+    out.innerHTML = '<p class="error">Enter a valid opening bid less than max budget.</p>';
+    return;
+  }
+
+  const range = max - open;
+  let bids = [{ bid: open, inc: null }];
+  let cur = open, s = 0;
+
+  while (cur < max && s++ < 300) {
+    let pct = (cur - open) / range;
+    let inc = getIncrement(cur, range, pct);
+    let next = Math.min(cur + inc, max);
+    bids.push({ bid: next, inc });
+    cur = next;
+  }
+
+  const summary = `
+    <div class="summary">
+      <div class="stat"><div class="stat-label">Opening</div><div class="stat-val">${shorthand(open)}</div></div>
+      <div class="stat"><div class="stat-label">Max</div><div class="stat-val">${shorthand(max)}</div></div>
+      <div class="stat"><div class="stat-label">Raises</div><div class="stat-val">${bids.length - 1}</div></div>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#b5a98e;"></div>Early</div>
+      <div class="leg"><div class="leg-dot" style="background:#4a7c3f;"></div>Mid</div>
+      <div class="leg"><div class="leg-dot" style="background:#b07820;"></div>Close</div>
+      <div class="leg"><div class="leg-dot" style="background:#b03020;"></div>Walk away</div>
+    </div>`;
+
+  let rows = '';
+  bids.forEach((b, i) => {
+    let pct = (b.bid - open) / range;
+    let z = pct > 0.95 ? 'warn' : pct > 0.80 ? 'tight' : pct > 0.50 ? 'mid' : 'open';
+    let above = b.bid - open;
+    let isMax = b.bid === max;
+    let pill = isMax ? '<span class="pill">MAX</span>' : '';
+    let aboveStr = above === 0 ? '<span style="color:#c5bba8">—</span>' : '+' + fmtFull(above);
+    let stepStr = b.inc ? '+' + shorthand(b.inc) : '—';
+
+    rows += `<tr class="z-${z}">
+      <td><span class="tc-call">${shorthand(b.bid)}${pill}</span></td>
+      <td><span class="tc-full">${fmtFull(b.bid)}</span></td>
+      <td><span class="tc-above">${aboveStr}</span></td>
+      <td><span class="tc-step">${stepStr}</span></td>
+    </tr>`;
+  });
+
+  out.innerHTML = summary + `
+    <div class="tbl-outer">
+      <table>
+        <colgroup>
+          <col class="c-call">
+          <col class="c-full">
+          <col class="c-above">
+          <col class="c-step">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Call</th>
+            <th>Full price</th>
+            <th>Above opening</th>
+            <th class="th-step">Step</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="tip">Increments taper as you near your max &nbsp;·&nbsp; Amber = close &nbsp;·&nbsp; Red = walk away</p>`;
+}
+</script>
+</body>
+</html>
